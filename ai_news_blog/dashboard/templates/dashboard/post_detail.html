@@ -1,0 +1,131 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Review: {{ post.title }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-auto">
+        <a href="{% url 'dashboard:index' %}" class="btn btn-outline-secondary btn-sm">&larr; Back to Index</a>
+    </div>
+    <div class="col">
+        <h2 class="mb-0">Review Blog Post</h2>
+    </div>
+    <div class="col-auto">
+        <div class="d-flex gap-2">
+            <!-- Regenerate Text Form -->
+            <form action="{% url 'dashboard:post_regenerate_text' post.id %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary btn-sm">Regenerate Text</button>
+            </form>
+
+            <!-- Regenerate Image Form -->
+            <form action="{% url 'dashboard:post_regenerate_image' post.id %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary btn-sm">Regenerate Image</button>
+            </form>
+
+            <!-- Reject Form -->
+            <form action="{% url 'dashboard:post_reject' post.id %}" method="POST" onsubmit="return confirm('Are you sure you want to reject this post?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+            </form>
+
+            <!-- Publish Form (Only visible for Publisher) -->
+            {% if user.profile.role == 'publisher' %}
+                <form action="{% url 'dashboard:post_publish' post.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-sm">Publish</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">Edit Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-danger small">{{ form.title.errors.as_text }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.excerpt.id_for_label }}" class="form-label">Excerpt</label>
+                        {{ form.excerpt }}
+                        {% if form.excerpt.errors %}
+                            <div class="text-danger small">{{ form.excerpt.errors.as_text }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.content.id_for_label }}" class="form-label">Content (HTML)</label>
+                        {{ form.content }}
+                        {% if form.content.errors %}
+                            <div class="text-danger small">{{ form.content.errors.as_text }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">Preview & Metadata</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h6>Featured Image:</h6>
+                    {% if post.featured_image_url %}
+                        <img src="{{ post.featured_image_url }}" alt="Featured Image" class="img-fluid rounded border mb-2" style="max-height: 300px; width: 100%; object-fit: cover;">
+                        <div class="small text-muted text-break">URL: <a href="{{ post.featured_image_url }}" target="_blank">{{ post.featured_image_url }}</a></div>
+                    {% else %}
+                        <div class="bg-light border rounded text-center py-5 text-muted">
+                            No featured image generated.
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <table class="table table-bordered table-sm small">
+                        <tbody>
+                            <tr>
+                                <th class="bg-light" style="width: 150px;">Source Title</th>
+                                <td>{{ post.source_news_title }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Source Link</th>
+                                <td><a href="{{ post.source_url }}" target="_blank" class="text-break">{{ post.source_url }}</a></td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Status</th>
+                                <td><span class="badge bg-secondary">{{ post.get_status_display }}</span></td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Pending Since</th>
+                                <td>{{ post.pending_since|date:"Y-m-d H:i:s" }} UTC</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="border rounded p-3 bg-white" style="max-height: 500px; overflow-y: auto;">
+                    <h1 class="h3 mb-3">{{ post.title }}</h1>
+                    <div class="post-preview-content">
+                        {{ post.content|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
