@@ -1,6 +1,7 @@
 import json
 import logging
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from django.utils import timezone
 from decouple import config
 from blog.models import BlogPost
@@ -12,30 +13,34 @@ logger = logging.getLogger(__name__)
 class GeminiQuotaExceeded(Exception):
     pass
 
-# Configure Gemini
+# Configure Gemini client
 api_key = config('GEMINI_API_KEY', default=None)
 if api_key:
-    genai.configure(api_key=api_key)
+    client = genai.Client(api_key=api_key)
 else:
+    client = None
     logger.warning("GEMINI_API_KEY not found in environment settings.")
+
+MODEL = 'gemini-2.0-flash'
 
 def _get_gemini_response(prompt, retry=True):
     """
     Helper to call Gemini and handle JSON parsing.
     """
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    
+    if not client:
+        raise ValueError("Gemini client is not initialized. Check GEMINI_API_KEY.")
+
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=prompt,
+        )
         text = response.text.strip()
-        
+
         # Strip markdown code fences if present
         if text.startswith('```'):
             lines = text.splitlines()
-            if lines[0].startswith('```json'):
-                text = '\n'.join(lines[1:-1])
-            else:
-                text = '\n'.join(lines[1:-1])
+            text = '\n'.join(lines[1:-1])
 
         return json.loads(text)
     except json.JSONDecodeError as e:
@@ -47,13 +52,9 @@ def _get_gemini_response(prompt, retry=True):
             logger.error(f"Failed to parse JSON from Gemini after retry: {e}")
             raise
     except Exception as e:
-        # Check if it's a quota error (status code 429)
-        if hasattr(e, 'status_code') and e.status_code == 429:
+        err_str = str(e)
+        if "429" in err_str or "quota" in err_str.lower() or "RESOURCE_EXHAUSTED" in err_str:
             raise GeminiQuotaExceeded("Gemini API quota exceeded.")
-        # Some SDK versions might wrap it differently
-        if "429" in str(e) or "quota" in str(e).lower():
-            raise GeminiQuotaExceeded("Gemini API quota exceeded.")
-        
         logger.error(f"Error calling Gemini API: {e}")
         raise
 
@@ -77,12 +78,8 @@ def generate_blog(raw_news_item):
        - 2-3 body sections with subheadings.
        - A 1-2 sentence conclusion/takeaway.
     4. NO SOURCE MENTION: Do not mention the original source, outlet, or link back to it.
-    5. OUTPUT FORMAT: Return ONLY valid JSON with these keys:
-       "title": "...",
-       "intro": "...",
-       "sections": [{"subheading": "...", "content": "..."}],
-       "conclusion": "...",
-       "excerpt": "..." (a short summary for a list page)
+    5. OUTPUT FORMAT: Return ONLY valid JSON with these exact keys:
+       {{"title": "...", "intro": "...", "sections": [{{"subheading": "...", "content": "..."}}], "conclusion": "...", "excerpt": "..."}}
 
     SOURCE ARTICLE:
     {raw_news_item.scraped_content}
@@ -90,14 +87,14 @@ def generate_blog(raw_news_item):
 
     try:
         data = _get_gemini_response(prompt)
-        
-        # Combine content into HTML/Markdown
+
+        # Combine content into HTML
         content_parts = [f"<p>{data['intro']}</p>"]
         for section in data['sections']:
             content_parts.append(f"<h2>{section['subheading']}</h2>")
             content_parts.append(f"<p>{section['content']}</p>")
         content_parts.append(f"<p><strong>Conclusion:</strong> {data['conclusion']}</p>")
-        
+
         full_content = "\n\n".join(content_parts)
 
         # Create BlogPost
@@ -129,10 +126,7 @@ def regenerate_blog_content(blog_post):
     """
     Regenerates the content of an existing BlogPost using the linked RawNewsItem.
     """
-    raw_news_item = getattr(blog_post, 'raw_news_item_set', None)
-    # If not found directly, try reverse relation or through the field in RawNewsItem
-    if not raw_news_item:
-        raw_news_item = RawNewsItem.objects.filter(linked_blog_post=blog_post).first()
+    raw_news_item = RawNewsItem.objects.filter(linked_blog_post=blog_post).first()
 
     if not raw_news_item or not raw_news_item.scraped_content:
         logger.error(f"Cannot regenerate: No linked scraped content for BlogPost {blog_post.id}")
@@ -141,11 +135,11 @@ def regenerate_blog_content(blog_post):
     prompt = f"""
     You are a professional tech blogger. REGENERATE this blog post to be better and fresher.
     
-    RULES: [SAME AS BEFORE]
+    RULES:
     - Word count: 400-600 words.
-    - Template: title, intro, 2-3 sections, conclusion.
+    - Template: title, intro, 2-3 sections with subheadings, conclusion.
     - NO source mentions.
-    - Format: JSON.
+    - Return ONLY valid JSON with keys: {{"title": "...", "intro": "...", "sections": [{{"subheading": "...", "content": "..."}}], "conclusion": "...", "excerpt": "..."}}
 
     SOURCE ARTICLE:
     {raw_news_item.scraped_content}
@@ -153,23 +147,22 @@ def regenerate_blog_content(blog_post):
 
     try:
         data = _get_gemini_response(prompt)
-        
+
         content_parts = [f"<p>{data['intro']}</p>"]
         for section in data['sections']:
             content_parts.append(f"<h2>{section['subheading']}</h2>")
             content_parts.append(f"<p>{section['content']}</p>")
         content_parts.append(f"<p><strong>Conclusion:</strong> {data['conclusion']}</p>")
-        
+
         full_content = "\n\n".join(content_parts)
 
-        # Update BlogPost
         blog_post.title = data['title']
         blog_post.content = full_content
         blog_post.excerpt = data['excerpt']
-        
+
         if blog_post.status == 'pending':
             blog_post.pending_since = timezone.now()
-            
+
         blog_post.save()
         return True
 

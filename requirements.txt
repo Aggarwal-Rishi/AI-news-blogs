@@ -6,3 +6,5 @@ playwright
 google-generativeai
 requests
 feedparser
+google-genai
+python-dateutil
