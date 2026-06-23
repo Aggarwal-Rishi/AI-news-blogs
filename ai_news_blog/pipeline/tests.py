@@ -1,11 +1,13 @@
 from django.test import TestCase
 from unittest.mock import patch, MagicMock
 from blog.models import BlogPost
+from dashboard.models import SystemNotification
 from .news_fetcher import fetch_latest_news
 from .models import RawNewsItem
 from .image_generator import build_image_prompt, generate_image, regenerate_image
 from .orchestrator import run_pipeline
 from .blog_writer import GeminiQuotaExceeded
+
 
 
 class NewsFetcherTest(TestCase):
