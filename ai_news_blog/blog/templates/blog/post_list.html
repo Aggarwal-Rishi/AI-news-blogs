@@ -1,0 +1,63 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Latest Articles - AI News Blog{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if page_obj %}
+        <div class="posts-grid">
+            {% for post in page_obj %}
+                <article class="post-card">
+                    <a href="{% url 'blog:post_detail' post.slug %}" class="post-card-image-link">
+                        {% if post.featured_image_url %}
+                            <img src="{{ post.featured_image_url }}" alt="{{ post.title }}" class="post-card-image">
+                        {% else %}
+                            <div style="background: #e2e8f0; height: 100%; display: flex; align-items: center; justify-content: center; color: #718096; width: 100%;">
+                                No Image
+                            </div>
+                        {% endif %}
+                    </a>
+                    <div class="post-card-content">
+                        <div class="post-card-meta">
+                            {{ post.published_at|date:"F j, Y" }}
+                        </div>
+                        <h2 class="post-card-title">
+                            <a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a>
+                        </h2>
+                        <p class="post-card-excerpt">
+                            {{ post.excerpt }}
+                        </p>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        {% if page_obj.has_other_pages %}
+            <nav class="pagination" aria-label="Pagination">
+                {% if page_obj.has_previous %}
+                    <a class="pagination-link" href="?page=1">&laquo;</a>
+                    <a class="pagination-link" href="?page={{ page_obj.previous_page_number }}">&lsaquo;</a>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="pagination-current">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a class="pagination-link" href="?page={{ num }}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a class="pagination-link" href="?page={{ page_obj.next_page_number }}">&rsaquo;</a>
+                    <a class="pagination-link" href="?page={{ page_obj.paginator.num_pages }}">&raquo;</a>
+                {% endif %}
+            </nav>
+        {% endif %}
+    {% else %}
+        <div style="text-align: center; padding: 5rem 0; color: #718096;">
+            <h2>No Published Articles</h2>
+            <p>Check back later for fresh tech news updates.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

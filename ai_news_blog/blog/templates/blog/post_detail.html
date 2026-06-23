@@ -1,0 +1,25 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}{{ post.title }} - AI News Blog{% endblock %}
+
+{% block content %}
+<article class="container post-detail">
+    <div class="content-column">
+        <div class="post-detail-meta">
+            Published on {{ post.published_at|date:"F j, Y" }}
+        </div>
+
+        <h1 class="post-detail-title">{{ post.title }}</h1>
+        
+        {% if post.featured_image_url %}
+            <div class="post-detail-image-container">
+                <img src="{{ post.featured_image_url }}" alt="{{ post.title }}" class="post-detail-image">
+            </div>
+        {% endif %}
+
+        <div class="post-detail-content">
+            {{ post.content|safe }}
+        </div>
+    </div>
+</article>
+{% endblock %}

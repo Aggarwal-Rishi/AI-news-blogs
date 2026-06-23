@@ -1,0 +1,297 @@
+/* Import fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+
+/* Base Reset & Variables */
+:root {
+    --bg-color: #faf9f6;
+    --text-color: #2c3539;
+    --accent-color: #0f766e;
+    --accent-hover: #115e59;
+    --muted-color: #6b7280;
+    --border-color: #e5e7eb;
+    --card-bg: #ffffff;
+    --font-headings: 'Playfair Display', Georgia, serif;
+    --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-body);
+    line-height: 1.7;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-headings);
+    color: #1a202c;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 1rem;
+}
+
+p {
+    margin-bottom: 1.25rem;
+}
+
+a {
+    color: var(--accent-color);
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+}
+
+.container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.content-column {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.site-header {
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem 0;
+    margin-bottom: 3rem;
+}
+
+.site-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.site-logo {
+    font-family: var(--font-headings);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a202c;
+}
+
+.site-logo:hover {
+    text-decoration: none;
+    color: var(--accent-color);
+}
+
+.site-footer {
+    margin-top: auto;
+    padding: 2.5rem 0;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    text-align: center;
+    color: var(--muted-color);
+    font-size: 0.875rem;
+}
+
+.posts-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    margin-bottom: 3rem;
+}
+
+.post-card {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 1.5rem;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.post-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+}
+
+.post-card-image-link {
+    display: block;
+    height: 100%;
+    min-height: 150px;
+}
+
+.post-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    aspect-ratio: 16 / 9;
+}
+
+.post-card-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.post-card-meta {
+    font-size: 0.825rem;
+    color: var(--muted-color);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.post-card-title {
+    font-size: 1.35rem;
+    margin-bottom: 0.75rem;
+}
+
+.post-card-excerpt {
+    font-size: 0.95rem;
+    color: #4a5568;
+    margin-bottom: 0;
+}
+
+.post-detail {
+    margin-bottom: 4rem;
+}
+
+.post-detail-image-container {
+    width: 100%;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.post-detail-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+
+.post-detail-meta {
+    font-size: 0.9rem;
+    color: var(--muted-color);
+    margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+}
+
+.post-detail-title {
+    font-size: 2.75rem;
+    line-height: 1.2;
+    margin-bottom: 2rem;
+}
+
+.post-detail-content {
+    font-size: 1.125rem;
+    color: var(--text-color);
+    line-height: 1.8;
+}
+
+.post-detail-content h2, .post-detail-content h3 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 4rem;
+}
+
+.pagination-link, .pagination-current {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0 0.75rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+}
+
+.pagination-link {
+    color: var(--accent-color);
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.pagination-link:hover {
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
+    text-decoration: none;
+}
+
+.pagination-current {
+    background-color: var(--accent-color);
+    color: #ffffff;
+    border-color: var(--accent-color);
+}
+
+.error-container {
+    text-align: center;
+    padding: 5rem 0;
+}
+
+.error-title {
+    font-size: 5rem;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+}
+
+.error-message {
+    font-size: 1.5rem;
+    color: var(--muted-color);
+    margin-bottom: 2rem;
+}
+
+.btn {
+    display: inline-block;
+    background-color: var(--accent-color);
+    color: #ffffff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.btn:hover {
+    background-color: var(--accent-hover);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+    .post-card {
+        grid-template-columns: 1fr;
+    }
+    
+    .post-card-image-link {
+        height: 200px;
+    }
+    
+    .post-detail-title {
+        font-size: 2rem;
+    }
+    
+    .site-header {
+        margin-bottom: 2rem;
+    }
+}
