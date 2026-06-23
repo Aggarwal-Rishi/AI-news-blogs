@@ -98,8 +98,11 @@ def scrape_article(raw_news_item):
 def scrape_pending_items(target_count=5):
     """
     Fetches pending items and scrapes them until target_count successes are reached.
+    Prioritizes 'carried_over' items first, ordered by oldest 'fetched_at'.
     """
-    items = RawNewsItem.objects.filter(status__in=['fetched', 'carried_over']).order_by('fetched_at')
+    carried_over_items = RawNewsItem.objects.filter(status='carried_over').order_by('fetched_at')
+    fetched_items = RawNewsItem.objects.filter(status='fetched').order_by('fetched_at')
+    items = list(carried_over_items) + list(fetched_items)
     
     scraped_items = []
     success_count = 0
@@ -114,3 +117,4 @@ def scrape_pending_items(target_count=5):
             success_count += 1
             
     return scraped_items
+
