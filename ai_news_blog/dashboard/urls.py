@@ -13,4 +13,6 @@ urlpatterns = [
     path('post/<int:post_id>/regenerate-text/', views.post_regenerate_text, name='post_regenerate_text'),
     path('post/<int:post_id>/regenerate-image/', views.post_regenerate_image, name='post_regenerate_image'),
     path('published/', views.published_list, name='published_list'),
+    path('notification/<int:notification_id>/dismiss/', views.notification_dismiss, name='notification_dismiss'),
+
 ]

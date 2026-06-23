@@ -136,3 +136,13 @@ def post_regenerate_image(request, post_id):
 def published_list(request):
     published_posts = BlogPost.objects.filter(status='published').order_by('-published_at')
     return render(request, 'dashboard/published.html', {'posts': published_posts})
+
+@dashboard_member_required
+@require_POST
+def notification_dismiss(request, notification_id):
+    notification = get_object_or_404(SystemNotification, id=notification_id)
+    notification.is_resolved = True
+    notification.save()
+    messages.success(request, "Notification marked as resolved.")
+    return redirect('dashboard:index')
+

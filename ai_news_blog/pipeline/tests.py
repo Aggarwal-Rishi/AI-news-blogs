@@ -232,5 +232,56 @@ class PipelineOrchestratorTest(TestCase):
         self.assertEqual(carried_over_db.count(), 5)
         self.assertEqual(RawNewsItem.objects.filter(status='carried_over', title__startswith='Scraped').count(), 3)
 
+    @patch('pipeline.orchestrator.send_mail')
+    def test_send_failure_notification(self, mock_send_mail):
+        from pipeline.orchestrator import send_failure_notification
+        
+        with patch('pipeline.orchestrator.config') as mock_config:
+            def config_side_effect(key, default=None):
+                if key == 'ADMIN_NOTIFICATION_EMAIL':
+                    return 'admin@example.com'
+                if key == 'EMAIL_HOST_USER':
+                    return 'alerts@example.com'
+                return default
+            mock_config.side_effect = config_side_effect
+            
+            SystemNotification.objects.all().delete()
+            
+            send_failure_notification(reason="gemini_quota_exceeded", processed_count=2, total_attempted=5)
+            
+            notifications = SystemNotification.objects.filter(is_resolved=False)
+            self.assertEqual(notifications.count(), 1)
+            notification = notifications.first()
+            self.assertIn("Daily pipeline paused: Gemini API quota exceeded after generating 2 of 5 blogs.", notification.message)
+            
+            mock_send_mail.assert_called_once_with(
+                subject="Daily News Pipeline Alert: Quota Exceeded",
+                message=notification.message,
+                from_email="alerts@example.com",
+                recipient_list=["admin@example.com"],
+                fail_silently=False
+            )
+
+    @patch('pipeline.orchestrator.send_mail')
+    def test_send_failure_notification_email_error_graceful(self, mock_send_mail):
+        from pipeline.orchestrator import send_failure_notification
+        
+        mock_send_mail.side_effect = Exception("SMTP Connection Timeout")
+        
+        with patch('pipeline.orchestrator.config') as mock_config:
+            def config_side_effect(key, default=None):
+                if key == 'ADMIN_NOTIFICATION_EMAIL':
+                    return 'admin@example.com'
+                return default
+            mock_config.side_effect = config_side_effect
+            
+            SystemNotification.objects.all().delete()
+            
+            # This should not crash the execution
+            send_failure_notification(reason="gemini_quota_exceeded", processed_count=2, total_attempted=5)
+            
+            self.assertEqual(SystemNotification.objects.filter(is_resolved=False).count(), 1)
+
+
 
 

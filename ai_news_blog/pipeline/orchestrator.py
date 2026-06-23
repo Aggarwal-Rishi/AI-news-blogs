@@ -1,5 +1,8 @@
 import logging
 from django.utils import timezone
+from django.core.mail import send_mail
+from decouple import config
+from dashboard.models import SystemNotification
 from .models import RawNewsItem
 from .news_fetcher import fetch_latest_news
 from .scraper import scrape_pending_items
@@ -10,12 +13,47 @@ logger = logging.getLogger(__name__)
 
 def send_failure_notification(reason, processed_count, total_attempted):
     """
-    Placeholder failure notification. Will be fully implemented in Step 9.
+    Creates a SystemNotification record and attempts to email the administrator.
     """
-    logger.error(
-        f"[NOTIFICATION FAILURE] Reason: {reason}, "
-        f"Processed: {processed_count}, Attempted: {total_attempted}"
-    )
+    if reason == "gemini_quota_exceeded":
+        message = (
+            f"Daily pipeline paused: Gemini API quota exceeded after generating "
+            f"{processed_count} of {total_attempted} blogs. "
+            f"Remaining items will resume automatically once quota renews."
+        )
+    else:
+        message = (
+            f"Daily pipeline execution failed due to error: {reason}. "
+            f"Generated {processed_count} of {total_attempted} blogs."
+        )
+        
+    # 1. Create a SystemNotification record
+    SystemNotification.objects.create(message=message)
+    logger.info(f"SystemNotification created: {message}")
+    
+    # 2. Retrieve admin email
+    admin_email = config('ADMIN_NOTIFICATION_EMAIL', default=None)
+    
+    if admin_email:
+        # 3. Send email to admin
+        subject = "Daily News Pipeline Alert: Quota Exceeded" if reason == "gemini_quota_exceeded" else "Daily News Pipeline Alert: Execution Error"
+        from_email = config('EMAIL_HOST_USER', default='webmaster@localhost')
+        
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=from_email,
+                recipient_list=[admin_email],
+                fail_silently=False
+            )
+            logger.info(f"Notification email sent successfully to {admin_email}")
+        except Exception as e:
+            # Handle email sending failures gracefully
+            logger.error(f"Failed to send notification email to {admin_email}: {e}")
+    else:
+        logger.warning("ADMIN_NOTIFICATION_EMAIL not configured in environment. Skipping email alert.")
+
 
 def run_pipeline():
     """

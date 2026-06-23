@@ -7,12 +7,17 @@
     <div class="row">
         <div class="col">
             {% for notification in notifications %}
-                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                <div class="alert alert-danger d-flex align-items-center justify-content-between" role="alert">
                     <div>
                         <strong>System Alert:</strong> {{ notification.message }} 
                         <span class="text-muted small">({{ notification.created_at|date:"Y-m-d H:i" }})</span>
                     </div>
+                    <form action="{% url 'dashboard:notification_dismiss' notification.id %}" method="POST" class="mb-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Dismiss</button>
+                    </form>
                 </div>
+
             {% endfor %}
         </div>
     </div>

@@ -115,6 +115,15 @@ class DashboardActionsTest(TestCase):
         self.assertRedirects(response, reverse('dashboard:post_detail', args=[self.post.id]))
         mock_regen_image.assert_called_once_with(self.post)
 
+    def test_notification_dismiss(self):
+        notification = SystemNotification.objects.create(message="Pipeline error", is_resolved=False)
+        response = self.client.post(reverse('dashboard:notification_dismiss', args=[notification.id]))
+        self.assertRedirects(response, reverse('dashboard:index'))
+        
+        notification.refresh_from_db()
+        self.assertTrue(notification.is_resolved)
+
+
 class DashboardViewLogicTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -153,3 +162,32 @@ class DashboardViewLogicTest(TestCase):
         
         self.assertIn(unresolved, notifications_in_context)
         self.assertNotIn(resolved, notifications_in_context)
+
+    def test_auto_publish(self):
+        from dashboard.auto_publish import check_and_auto_publish
+        now = timezone.now()
+        
+        # Post under 48 hours (e.g. 10 hours ago) -> should remain pending
+        p1 = BlogPost.objects.create(
+            title="P1", content="c", excerpt="e", status="pending",
+            pending_since=now - datetime.timedelta(hours=10),
+            source_url="http://1", source_news_title="s1"
+        )
+        
+        # Post over 48 hours (e.g. 50 hours ago) -> should be auto-published
+        p2 = BlogPost.objects.create(
+            title="P2", content="c", excerpt="e", status="pending",
+            pending_since=now - datetime.timedelta(hours=50),
+            source_url="http://2", source_news_title="s2"
+        )
+        
+        published_count = check_and_auto_publish()
+        self.assertEqual(published_count, 1)
+        
+        p1.refresh_from_db()
+        p2.refresh_from_db()
+        
+        self.assertEqual(p1.status, 'pending')
+        self.assertEqual(p2.status, 'published')
+        self.assertIsNotNone(p2.published_at)
+
