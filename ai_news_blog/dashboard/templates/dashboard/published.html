@@ -1,64 +1,49 @@
-{% extends 'dashboard/base.html' %}
+{% extends 'dashboard/base_dashboard.html' %}
 
 {% block title %}Published Posts{% endblock %}
 
+{% block page_title %}Published Posts{% endblock %}
+
 {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <h2>Published Posts</h2>
-        <p class="text-muted">A read-only archive of all published articles.</p>
-    </div>
+<div class="dashboard-header-desc" style="margin-bottom: 2rem;">
+    <p style="color: var(--body-color); font-size: 0.95rem;">A read-only archive of all published articles.</p>
 </div>
 
-<div class="row">
-    <div class="col">
-        {% if posts %}
-            <div class="card shadow-sm">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th style="width: 120px;">Thumbnail</th>
-                                <th>Post Details</th>
-                                <th style="width: 200px;">Published At</th>
-                                <th style="width: 150px; text-align: right;">Links</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for post in posts %}
-                                <tr>
-                                    <td>
-                                        {% if post.featured_image_url %}
-                                            <img src="{{ post.featured_image_url }}" alt="Thumbnail" class="img-thumbnail" style="width: 100px; height: 56px; object-fit: cover;">
-                                        {% else %}
-                                            <div class="bg-secondary text-white text-center rounded d-flex align-items-center justify-content-center" style="width: 100px; height: 56px; font-size: 10px;">
-                                                No Image
-                                            </div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <h5 class="mb-1">{{ post.title }}</h5>
-                                        <p class="text-muted mb-0 small">{{ post.excerpt }}</p>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-success">Published</span>
-                                        <div class="text-muted small">{{ post.published_at|date:"Y-m-d H:i" }}</div>
-                                    </td>
-                                    <td class="text-end">
-                                        <a href="{{ post.source_url }}" target="_blank" class="btn btn-outline-secondary btn-sm">Source &nearr;</a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+{% if posts %}
+    <div class="drafts-list">
+        {% for post in posts %}
+            <div class="draft-card">
+                <!-- Thumbnail -->
+                {% if post.featured_image_url %}
+                    <img src="{{ post.featured_image_url }}" alt="Thumbnail" class="draft-thumbnail">
+                {% else %}
+                    <div class="draft-thumbnail" style="display: flex; align-items: center; justify-content: center; background-color: var(--border-color); color: var(--muted-color); font-size: 0.75rem; font-weight: 600;">
+                        No Image
+                    </div>
+                {% endif %}
+
+                <!-- Info -->
+                <div class="draft-info">
+                    <h2 class="draft-title" style="color: var(--headings-color); font-weight: 600; font-size: 1.05rem;">
+                        {{ post.title }}
+                    </h2>
+                    <p class="draft-excerpt">{{ post.excerpt }}</p>
+                    <div class="countdown-badge" style="color: var(--primary-blue);">
+                        <span class="role-badge publisher" style="padding: 0.1rem 0.5rem; margin-right: 0.5rem;">Published</span> Published At: {{ post.published_at|date:"F j, Y, H:i" }} UTC
+                    </div>
+                </div>
+
+                <!-- Action links -->
+                <div class="draft-actions">
+                    <a href="{{ post.source_url }}" target="_blank" class="btn-review" style="background-color: transparent; border: 1px solid var(--border-color); color: var(--body-color);">Source &nearr;</a>
                 </div>
             </div>
-        {% else %}
-            <div class="alert alert-info text-center py-5">
-                <h4>No Published Posts</h4>
-                <p class="mb-0 text-muted">There are no published articles yet.</p>
-            </div>
-        {% endif %}
+        {% endfor %}
     </div>
-</div>
+{% else %}
+    <div class="empty-state">
+        <h3 class="empty-state-title" style="color: var(--headings-color); font-weight: 700;">No Published Posts</h3>
+        <p class="empty-state-desc">There are no published articles yet.</p>
+    </div>
+{% endif %}
 {% endblock %}

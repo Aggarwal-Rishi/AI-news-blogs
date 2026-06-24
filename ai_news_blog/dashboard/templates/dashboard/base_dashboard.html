@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} - AI News Blog</title>
+    <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+</head>
+<body>
+    {% block full_layout %}
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="{% url 'dashboard:index' %}">
+                    <img src="{% static 'blog/images/logo2.png' %}" alt="AI News Blog Admin" class="sidebar-logo">
+                </a>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="sidebar-nav-item">
+                    <a href="{% url 'dashboard:index' %}" class="sidebar-link {% if request.resolver_match.view_name == 'dashboard:index' or request.resolver_match.view_name == 'dashboard:post_detail' %}active{% endif %}">
+                        <span class="sidebar-text">Pending Drafts</span>
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="{% url 'dashboard:published_list' %}" class="sidebar-link {% if request.resolver_match.view_name == 'dashboard:published_list' %}active{% endif %}">
+                        <span class="sidebar-text">Published Posts</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-title">
+                    {% block page_title %}Dashboard{% endblock %}
+                </div>
+                <div class="topbar-user">
+                    {% if user.is_authenticated %}
+                        <div class="topbar-user-info" style="display: flex; align-items: center; gap: 0.75rem; margin-right: 1rem;">
+                            <span class="user-name">{{ user.username }}</span>
+                            {% if user.is_superuser %}
+                                <span class="role-badge admin">Superuser</span>
+                            {% elif user.profile.role == 'publisher' %}
+                                <span class="role-badge publisher">Publisher</span>
+                            {% else %}
+                                <span class="role-badge editor">Editor</span>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'dashboard:logout' %}" class="btn-logout">Logout</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <!-- Dashboard Content Container -->
+            <main class="dashboard-container">
+                <!-- Django Messages -->
+                {% if messages %}
+                    <div class="messages-container">
+                        {% for message in messages %}
+                            <div class="alert-message {{ message.tags }}" id="msg-{{ forloop.counter }}">
+                                <span>{{ message }}</span>
+                                <button type="button" class="alert-dismiss" onclick="dismissAlert('msg-{{ forloop.counter }}')">&times;</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% block content %}
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+    {% endblock %}
+
+    <!-- Vanilla Javascript -->
+    <script>
+        function dismissAlert(elementId) {
+            var element = document.getElementById(elementId);
+            if (element) {
+                element.style.transition = 'opacity 0.2s ease';
+                element.style.opacity = '0';
+                setTimeout(function() {
+                    element.remove();
+                }, 200);
+            }
+        }
+    </script>
+</body>
+</html>

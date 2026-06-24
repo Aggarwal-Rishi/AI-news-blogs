@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI News Blog{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'blog/style.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="{% url 'blog:post_list' %}" class="logo-container">
+                <img src="{% static 'blog/images/logo2.png' %}" alt="AI News Blog" class="logo-image">
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="{% url 'blog:post_list' %}">Home</a></li>
+                    <li><a href="{% url 'blog:post_list' %}">Latest</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; {% now "Y" %} AI News Blog. LATEST IN AI & TECH NEWS.</p>
+            <span class="footer-badge">Powered by AI</span>
+        </div>
+    </footer>
+</body>
+</html>

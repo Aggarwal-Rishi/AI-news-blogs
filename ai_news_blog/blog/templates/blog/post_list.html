@@ -1,42 +1,56 @@
-{% extends 'blog/base.html' %}
+{% extends 'blog/base_public.html' %}
 
 {% block title %}Latest Articles - AI News Blog{% endblock %}
 
 {% block content %}
+<!-- Typographic Hero Section -->
+<section class="hero">
+    <div class="container">
+        <h1 class="hero-tagline">Your daily dose of AI news, rewritten for clarity.</h1>
+    </div>
+</section>
+
 <div class="container">
     {% if page_obj %}
+        <!-- Blog Cards Grid -->
         <div class="posts-grid">
             {% for post in page_obj %}
                 <article class="post-card">
+                    <!-- Featured Image Area -->
                     <a href="{% url 'blog:post_detail' post.slug %}" class="post-card-image-link">
+                        <!-- AI Badge overlay -->
+                        <span class="ai-badge">AI Generated</span>
                         {% if post.featured_image_url %}
                             <img src="{{ post.featured_image_url }}" alt="{{ post.title }}" class="post-card-image">
                         {% else %}
-                            <div style="background: #e2e8f0; height: 100%; display: flex; align-items: center; justify-content: center; color: #718096; width: 100%;">
+                            <div style="background: #f1f5f9; height: 100%; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 500; font-size: 0.9rem;">
                                 No Image
                             </div>
                         {% endif %}
                     </a>
+                    
+                    <!-- Content Area -->
                     <div class="post-card-content">
-                        <div class="post-card-meta">
-                            {{ post.published_at|date:"F j, Y" }}
-                        </div>
                         <h2 class="post-card-title">
                             <a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a>
                         </h2>
                         <p class="post-card-excerpt">
                             {{ post.excerpt }}
                         </p>
+                        <div class="post-card-date">
+                            {{ post.published_at|date:"F j, Y" }}
+                        </div>
                     </div>
                 </article>
             {% endfor %}
         </div>
 
+        <!-- Pagination Controls -->
         {% if page_obj.has_other_pages %}
             <nav class="pagination" aria-label="Pagination">
                 {% if page_obj.has_previous %}
-                    <a class="pagination-link" href="?page=1">&laquo;</a>
-                    <a class="pagination-link" href="?page={{ page_obj.previous_page_number }}">&lsaquo;</a>
+                    <a class="pagination-link" href="?page=1" aria-label="First">&laquo;</a>
+                    <a class="pagination-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">&lsaquo;</a>
                 {% endif %}
 
                 {% for num in page_obj.paginator.page_range %}
@@ -48,14 +62,14 @@
                 {% endfor %}
 
                 {% if page_obj.has_next %}
-                    <a class="pagination-link" href="?page={{ page_obj.next_page_number }}">&rsaquo;</a>
-                    <a class="pagination-link" href="?page={{ page_obj.paginator.num_pages }}">&raquo;</a>
+                    <a class="pagination-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">&rsaquo;</a>
+                    <a class="pagination-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">&raquo;</a>
                 {% endif %}
             </nav>
         {% endif %}
     {% else %}
-        <div style="text-align: center; padding: 5rem 0; color: #718096;">
-            <h2>No Published Articles</h2>
+        <div style="text-align: center; padding: 6rem 0; color: #94a3b8;">
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #0F172A;">No Published Articles</h2>
             <p>Check back later for fresh tech news updates.</p>
         </div>
     {% endif %}

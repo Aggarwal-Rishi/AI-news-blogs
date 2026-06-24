@@ -1,88 +1,76 @@
-{% extends 'dashboard/base.html' %}
+{% extends 'dashboard/base_dashboard.html' %}
 
-{% block title %}Pending Reviews{% endblock %}
+{% block title %}Pending Drafts{% endblock %}
+
+{% block page_title %}Pending Drafts{% endblock %}
 
 {% block content %}
+<!-- System Notifications Stack -->
 {% if notifications %}
-    <div class="row">
-        <div class="col">
-            {% for notification in notifications %}
-                <div class="alert alert-danger d-flex align-items-center justify-content-between" role="alert">
-                    <div>
-                        <strong>System Alert:</strong> {{ notification.message }} 
-                        <span class="text-muted small">({{ notification.created_at|date:"Y-m-d H:i" }})</span>
-                    </div>
-                    <form action="{% url 'dashboard:notification_dismiss' notification.id %}" method="POST" class="mb-0">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-danger btn-sm">Dismiss</button>
-                    </form>
+    <div class="notifications-stack">
+        {% for notification in notifications %}
+            <div class="sys-notification" id="notif-{{ notification.id }}">
+                <div>
+                    <strong>System Alert:</strong> {{ notification.message }}
+                    <span style="opacity: 0.7; font-size: 0.8rem; margin-left: 0.5rem;">({{ notification.created_at|date:"Y-m-d H:i" }})</span>
                 </div>
-
-            {% endfor %}
-        </div>
+                <form action="{% url 'dashboard:notification_dismiss' notification.id %}" method="POST" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-dismiss" title="Dismiss Alert">&times;</button>
+                </form>
+            </div>
+        {% endfor %}
     </div>
 {% endif %}
 
-<div class="row mb-4">
-    <div class="col">
-        <h2>Pending Reviews</h2>
-        <p class="text-muted">Review, edit, publish, or reject generated blog posts.</p>
-    </div>
+<!-- Pending Drafts Content -->
+<div class="dashboard-header-desc" style="margin-bottom: 2rem;">
+    <p style="color: var(--body-color); font-size: 0.95rem;">Review, edit, publish, or reject generated blog posts.</p>
 </div>
 
-<div class="row">
-    <div class="col">
-        {% if posts %}
-            <div class="card shadow-sm">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th style="width: 120px;">Thumbnail</th>
-                                <th>Post Details</th>
-                                <th style="width: 200px;">Auto-Publish Deadline</th>
-                                <th style="width: 150px; text-align: right;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for post in posts %}
-                                <tr>
-                                    <td>
-                                        {% if post.featured_image_url %}
-                                            <img src="{{ post.featured_image_url }}" alt="Thumbnail" class="img-thumbnail" style="width: 100px; height: 56px; object-fit: cover;">
-                                        {% else %}
-                                            <div class="bg-secondary text-white text-center rounded d-flex align-items-center justify-content-center" style="width: 100px; height: 56px; font-size: 10px;">
-                                                No Image
-                                            </div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <h5 class="mb-1"><a href="{% url 'dashboard:post_detail' post.id %}">{{ post.title }}</a></h5>
-                                        <p class="text-muted mb-0 small">{{ post.excerpt }}</p>
-                                    </td>
-                                    <td>
-                                        {% if post.time_remaining == "Overdue" %}
-                                            <span class="badge bg-danger">Overdue</span>
-                                        {% else %}
-                                            <span class="badge bg-warning text-dark">{{ post.time_remaining }}</span>
-                                        {% endif %}
-                                        <div class="text-muted small">since {{ post.pending_since|date:"Y-m-d H:i" }}</div>
-                                    </td>
-                                    <td class="text-end">
-                                        <a href="{% url 'dashboard:post_detail' post.id %}" class="btn btn-primary btn-sm">Review</a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+{% if posts %}
+    <div class="drafts-list">
+        {% for post in posts %}
+            <div class="draft-card">
+                <!-- Thumbnail -->
+                {% if post.featured_image_url %}
+                    <img src="{{ post.featured_image_url }}" alt="Thumbnail" class="draft-thumbnail">
+                {% else %}
+                    <div class="draft-thumbnail" style="display: flex; align-items: center; justify-content: center; background-color: var(--border-color); color: var(--muted-color); font-size: 0.75rem; font-weight: 600;">
+                        No Image
+                    </div>
+                {% endif %}
+
+                <!-- Info -->
+                <div class="draft-info">
+                    <h2 class="draft-title">
+                        <a href="{% url 'dashboard:post_detail' post.id %}">{{ post.title }}</a>
+                    </h2>
+                    <p class="draft-excerpt">{{ post.excerpt }}</p>
+                    
+                    <!-- Countdown badge check -->
+                    {% if "0h" in post.time_remaining or "1h" in post.time_remaining or "2h" in post.time_remaining or "3h" in post.time_remaining or "4h" in post.time_remaining or "5h" in post.time_remaining or post.time_remaining == "Overdue" %}
+                        <div class="countdown-badge urgent">
+                            <span style="margin-right: 0.35rem;">⏱</span> Auto-publishes: {{ post.time_remaining }} (since {{ post.pending_since|date:"Y-m-d H:i" }})
+                        </div>
+                    {% else %}
+                        <div class="countdown-badge">
+                            <span style="margin-right: 0.35rem;">⏱</span> Auto-publishes: {{ post.time_remaining }} (since {{ post.pending_since|date:"Y-m-d H:i" }})
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Action review button -->
+                <div class="draft-actions">
+                    <a href="{% url 'dashboard:post_detail' post.id %}" class="btn-review">Review</a>
                 </div>
             </div>
-        {% else %}
-            <div class="alert alert-info text-center py-5">
-                <h4>No Pending Reviews</h4>
-                <p class="mb-0 text-muted">All generated blog posts have been resolved.</p>
-            </div>
-        {% endif %}
+        {% endfor %}
     </div>
-</div>
+{% else %}
+    <div class="empty-state">
+        <h3 class="empty-state-title" style="color: var(--headings-color); font-weight: 700;">No Pending Reviews</h3>
+        <p class="empty-state-desc">All generated blog posts have been resolved.</p>
+    </div>
+{% endif %}
 {% endblock %}
