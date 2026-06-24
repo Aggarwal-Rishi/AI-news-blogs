@@ -11,6 +11,9 @@ def dashboard_member_required(view_func):
         if not request.user.is_authenticated:
             return redirect('dashboard:login')
         
+        if request.user.is_superuser:
+            return view_func(request, *args, **kwargs)
+            
         try:
             profile = request.user.profile
             if profile.role in ['editor', 'publisher']:
@@ -30,6 +33,9 @@ def publisher_required(view_func):
         if not request.user.is_authenticated:
             return redirect('dashboard:login')
             
+        if request.user.is_superuser:
+            return view_func(request, *args, **kwargs)
+
         try:
             profile = request.user.profile
             if profile.role == 'publisher':

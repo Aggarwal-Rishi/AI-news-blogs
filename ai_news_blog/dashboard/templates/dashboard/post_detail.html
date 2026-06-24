@@ -31,7 +31,7 @@
             </form>
 
             <!-- Publish Form (Only visible for Publisher) -->
-            {% if user.profile.role == 'publisher' %}
+            {% if user.is_superuser or user.profile.role == 'publisher' %}
                 <form action="{% url 'dashboard:post_publish' post.id %}" method="POST">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-success btn-sm">Publish</button>

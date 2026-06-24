@@ -15,6 +15,8 @@ from pipeline.image_generator import regenerate_image
 
 def dashboard_login(request):
     if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return redirect('dashboard:index')
         try:
             if request.user.profile.role in ['editor', 'publisher']:
                 return redirect('dashboard:index')
@@ -25,6 +27,9 @@ def dashboard_login(request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+            if user.is_superuser:
+                auth_login(request, user)
+                return redirect('dashboard:index')
             try:
                 profile = user.profile
                 if profile.role in ['editor', 'publisher']:
