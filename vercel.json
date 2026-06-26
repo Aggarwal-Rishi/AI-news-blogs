@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "ai_news_blog/ai_news_blog/wsgi.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "ai_news_blog/ai_news_blog/wsgi.py"
+    }
+  ]
+}

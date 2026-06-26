@@ -8,3 +8,5 @@ requests
 feedparser
 google-genai
 python-dateutil
+whitenoise>=6.6.0
+
