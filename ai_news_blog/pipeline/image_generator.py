@@ -14,7 +14,7 @@ else:
     client = None
     logger.warning("GEMINI_API_KEY not found.")
 
-MODEL = 'gemini-2.0-flash'
+MODEL = 'gemini-3.5-flash'
 
 def build_image_prompt(blog_post):
     """

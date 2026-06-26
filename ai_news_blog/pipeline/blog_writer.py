@@ -21,7 +21,7 @@ else:
     client = None
     logger.warning("GEMINI_API_KEY not found in environment settings.")
 
-MODEL = 'gemini-2.0-flash'
+MODEL = 'gemini-3.5-flash'
 
 def _get_gemini_response(prompt, retry=True):
     """
